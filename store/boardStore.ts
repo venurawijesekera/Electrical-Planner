@@ -120,6 +120,23 @@ export const useBoardStore = create<BoardState>((set) => ({
         // Validation 3: Prevent self-connection
         if (wire.sourceComponentId === wire.targetComponentId) return state;
 
+        // Validation 4: Max 2 wires per terminal
+        const sourceRef = `${wire.sourceComponentId}-${wire.sourceTerminal}`;
+        const targetRef = `${wire.targetComponentId}-${wire.targetTerminal}`;
+
+        const countConnections = (componentId: string, terminal: 'IN' | 'OUT') => {
+            return state.wires.filter(w =>
+                (w.sourceComponentId === componentId && w.sourceTerminal === terminal) ||
+                (w.targetComponentId === componentId && w.targetTerminal === terminal)
+            ).length;
+        };
+
+        if (countConnections(wire.sourceComponentId, wire.sourceTerminal) >= 2 ||
+            countConnections(wire.targetComponentId, wire.targetTerminal) >= 2) {
+            console.warn("Terminal limit reached (max 2 wires)");
+            return state;
+        }
+
         return {
             wires: [...state.wires, { ...wire, id: uuidv4() }]
         };
