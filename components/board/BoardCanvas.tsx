@@ -31,6 +31,7 @@ export function BoardCanvas() {
 
     // Wiring State
     const [wiringSource, setWiringSource] = React.useState<{ componentId: string, terminal: 'IN' | 'OUT' } | null>(null);
+    const [selectedColor, setSelectedColor] = React.useState<'red' | 'blue' | 'green'>('red');
 
     const handleTerminalClick = (componentId: string, terminal: 'IN' | 'OUT', element: HTMLButtonElement) => {
         console.log('Clicked terminal', componentId, terminal);
@@ -53,7 +54,7 @@ export function BoardCanvas() {
                 sourceTerminal: wiringSource.terminal,
                 targetComponentId: componentId,
                 targetTerminal: terminal,
-                color: 'red' // Default to Phase for now, UI should allow selection
+                color: selectedColor // Use selected color
             });
 
             setWiringSource(null);
@@ -133,6 +134,27 @@ export function BoardCanvas() {
             <div className="relative max-w-4xl mx-auto z-10">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-white">Project Canvas</h1>
+
+                    {/* Color Selector */}
+                    <div className="flex items-center gap-2 bg-zinc-800 p-2 rounded-lg border border-zinc-700">
+                        <span className="text-xs text-zinc-400 font-medium mr-2">Wire Color:</span>
+                        <button
+                            onClick={() => setSelectedColor('red')}
+                            className={`w-6 h-6 rounded-full bg-red-500 border-2 ${selectedColor === 'red' ? 'border-white' : 'border-transparent'}`}
+                            title="Phase (Red)"
+                        />
+                        <button
+                            onClick={() => setSelectedColor('blue')}
+                            className={`w-6 h-6 rounded-full bg-blue-500 border-2 ${selectedColor === 'blue' ? 'border-white' : 'border-transparent'}`}
+                            title="Neutral (Blue)"
+                        />
+                        <button
+                            onClick={() => setSelectedColor('green')}
+                            className={`w-6 h-6 rounded-full bg-green-500 border-2 ${selectedColor === 'green' ? 'border-white' : 'border-transparent'}`}
+                            title="Earth (Green)"
+                        />
+                    </div>
+
                     <button
                         onClick={addRail}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"

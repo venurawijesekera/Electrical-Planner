@@ -101,9 +101,29 @@ export const useBoardStore = create<BoardState>((set) => ({
         return { rails: newRails.map((r, index) => ({ ...r, yPosition: index })) };
     }),
 
-    addWire: (wire) => set((state) => ({
-        wires: [...state.wires, { ...wire, id: uuidv4() }]
-    })),
+    addWire: (wire) => set((state) => {
+        // Validation 1: Prevent duplicate wires (same source/target)
+        const isDuplicate = state.wires.some(w =>
+            (w.sourceComponentId === wire.sourceComponentId && w.sourceTerminal === wire.sourceTerminal &&
+                w.targetComponentId === wire.targetComponentId && w.targetTerminal === wire.targetTerminal) ||
+            (w.sourceComponentId === wire.targetComponentId && w.sourceTerminal === wire.targetTerminal &&
+                w.targetComponentId === wire.sourceComponentId && w.targetTerminal === wire.sourceTerminal)
+        );
+        if (isDuplicate) return state;
+
+        // Validation 2: Prevent connecting same terminal type (IN-IN or OUT-OUT)
+        if (wire.sourceTerminal === wire.targetTerminal) {
+            console.warn("Cannot connect same terminal types (IN-IN or OUT-OUT)");
+            return state;
+        }
+
+        // Validation 3: Prevent self-connection
+        if (wire.sourceComponentId === wire.targetComponentId) return state;
+
+        return {
+            wires: [...state.wires, { ...wire, id: uuidv4() }]
+        };
+    }),
 
     removeWire: (wireId) => set((state) => ({
         wires: state.wires.filter(w => w.id !== wireId)
