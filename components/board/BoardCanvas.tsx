@@ -77,9 +77,16 @@ export function BoardCanvas() {
 
     const handleDragStart = (event: DragStartEvent) => {
         setActiveId(event.active.id as string);
-        // Logic to find active component in store to render overlay
-        const component = rails.flatMap(r => r.components).find(c => c.id === event.active.id);
-        if (component) setActiveComponent(component);
+
+        // Check if dragging from palette
+        const activeIdStr = event.active.id as string;
+        if (activeIdStr.startsWith('palette-') && event.active.data.current?.component) {
+            setActiveComponent(event.active.data.current.component);
+        } else {
+            // Logic to find active component in store to render overlay
+            const component = rails.flatMap(r => r.components).find(c => c.id === event.active.id);
+            if (component) setActiveComponent(component);
+        }
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
@@ -100,7 +107,26 @@ export function BoardCanvas() {
             return;
         }
 
-        // Handle Component Drop
+        // Handle Component Drop from Palette
+        const activeIdStr = active.id as string;
+        if (activeIdStr.startsWith('palette-') && active.data.current?.component) {
+            // Dragging from palette to board
+            const targetRailId = over.id as string;
+            const targetRail = rails.find(r => r.id === targetRailId);
+
+            if (targetRail) {
+                // Add the component from palette to the rail
+                const componentData = active.data.current.component;
+                useBoardStore.getState().addComponent(targetRailId, {
+                    type: componentData.type,
+                    width: componentData.width,
+                    specs: componentData.specs
+                });
+            }
+            return;
+        }
+
+        // Handle Component Drop (already on board, reordering)
         // Note: Most reordering logic happens in DragOver, but final commit can happen here
     };
 
